@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>story</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- markdown変換ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #fff;
+      color: #111;
+      font-family: "Noto Serif JP", serif;
+      overflow-x: auto;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+    }
+
+ 
+
+    .page {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      line-height: 2;
+      font-size: 1rem;
+      padding: 2rem;
+      height: 100vh;
+      box-sizing: border-box;
+  scroll-snap-align: start;
+   }
+
+    h1 {
+      font-size: 1.2rem;
+      margin-left: 2rem;
+    }
+
+    p {
+      margin: 0 0 1.5rem 0;
+    }
+
+    a.back {
+      position: fixed;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+<a class="back" href="/">一覧へ</a>
+
+<div class="page" id="content"></div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  const file = params.get("file");
+
+  const content = document.getElementById("content");
+
+  if (!file) {
+    content.innerHTML = `
+      <h1>読み込みエラー</h1>
+      <p>URLに <code>?file=xxxx.md</code> が付いていません。</p>
+      <p>一覧ページから開いてください。</p>
+    `;
+  } else {
+    fetch(`./${file}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Cannot load: ${file}`);
+        return res.text();
+      })
+      .then(md => {
+        content.innerHTML = marked.parse(md);
+        // タイトルをHTML titleにも反映（任意）
+        const h1 = content.querySelector("h1");
+        if (h1) document.title = h1.textContent;
+      })
+      .catch(err => {
+        content.innerHTML = `
+          <h1>読み込み失敗</h1>
+          <p>${String(err)}</p>
+          <p>ファイル名と場所（stories/内）を確認してください。</p>
+        `;
+      });
+  }
+</script>
+
+
+</body>
+</html>
