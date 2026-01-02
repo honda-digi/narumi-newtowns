@@ -9,17 +9,25 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       background: #fff;
       color: #111;
       font-family: "Noto Serif JP", serif;
-      overflow-x: auto;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
     }
 
- 
+    #content {
+      /* コンテンツ全体のコンテナ */
+    }
 
     .page {
       writing-mode: vertical-rl;
@@ -27,14 +35,25 @@
       line-height: 2;
       font-size: 1rem;
       padding: 2rem;
-      height: 100vh;
-      box-sizing: border-box;
-  scroll-snap-align: start;
-   }
+      height: 100svh; /* スマホのアドレスバー対応 */
+      width: 100vw;
+      overflow: hidden;
+      scroll-snap-align: start;
+      scroll-snap-stop: always; /* 必ず1ページずつ止まる */
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+
+    .page-inner {
+      height: 100%;
+      overflow: hidden;
+    }
 
     h1 {
       font-size: 1.2rem;
       margin-left: 2rem;
+      margin-top: 0;
     }
 
     p {
@@ -48,6 +67,34 @@
       font-size: 0.8rem;
       text-decoration: none;
       color: #777;
+      z-index: 100;
+      background: rgba(255,255,255,0.8);
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    /* ページインジケーター（任意） */
+    .page-indicator {
+      position: fixed;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 100;
+    }
+
+    .page-indicator span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      transition: background 0.3s;
+    }
+
+    .page-indicator span.active {
+      background: #333;
     }
   </style>
 </head>
@@ -55,19 +102,83 @@
 
 <a class="back" href="/">一覧へ</a>
 
-<div class="page" id="content"></div>
+<div id="content"></div>
+<div class="page-indicator" id="indicator"></div>
 
 <script>
   const params = new URLSearchParams(location.search);
   const file = params.get("file");
-
   const content = document.getElementById("content");
+  const indicator = document.getElementById("indicator");
+
+  // 1ページあたりの文字数（目安）- 縦書きなので行数ベースで調整
+  const CHARS_PER_PAGE = 200;
+
+  function splitIntoPages(html) {
+    // 一時的なコンテナでHTMLをパース
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    
+    const pages = [];
+    let currentPage = [];
+    let currentLength = 0;
+    
+    // 子要素を順番に処理
+    Array.from(temp.childNodes).forEach(node => {
+      const nodeText = node.textContent || "";
+      const nodeLength = nodeText.length;
+      
+      if (currentLength + nodeLength > CHARS_PER_PAGE && currentPage.length > 0) {
+        // 新しいページへ
+        pages.push(currentPage);
+        currentPage = [];
+        currentLength = 0;
+      }
+      
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        currentPage.push(node.outerHTML);
+      } else if (node.nodeType === Node.TEXT_NODE && nodeText.trim()) {
+        currentPage.push(nodeText);
+      }
+      currentLength += nodeLength;
+    });
+    
+    if (currentPage.length > 0) {
+      pages.push(currentPage);
+    }
+    
+    return pages;
+  }
+
+  function createPageIndicator(pageCount) {
+    indicator.innerHTML = "";
+    for (let i = 0; i < pageCount; i++) {
+      const dot = document.createElement("span");
+      if (i === 0) dot.classList.add("active");
+      indicator.appendChild(dot);
+    }
+  }
+
+  function updateIndicator() {
+    const pages = document.querySelectorAll(".page");
+    const scrollY = window.scrollY;
+    const pageHeight = window.innerHeight;
+    const currentPage = Math.round(scrollY / pageHeight);
+    
+    document.querySelectorAll(".page-indicator span").forEach((dot, i) => {
+      dot.classList.toggle("active", i === currentPage);
+    });
+  }
 
   if (!file) {
     content.innerHTML = `
-      <h1>読み込みエラー</h1>
-      <p>URLに <code>?file=xxxx.md</code> が付いていません。</p>
-      <p>一覧ページから開いてください。</p>
+      <div class="page">
+        <div class="page-inner">
+          <h1>読み込みエラー</h1>
+          <p>URLに <code>?file=xxxx.md</code> が付いていません。</p>
+          <p>一覧ページから開いてください。</p>
+        </div>
+      </div>
     `;
   } else {
     fetch(`./${file}`)
@@ -76,21 +187,41 @@
         return res.text();
       })
       .then(md => {
-        content.innerHTML = marked.parse(md);
-        // タイトルをHTML titleにも反映（任意）
+        const html = marked.parse(md);
+        const pages = splitIntoPages(html);
+        
+        // 各ページを生成
+        content.innerHTML = pages.map((pageContent, i) => `
+          <div class="page" data-page="${i + 1}">
+            <div class="page-inner">
+              ${pageContent.join("")}
+            </div>
+          </div>
+        `).join("");
+        
+        // インジケーター生成
+        createPageIndicator(pages.length);
+        
+        // スクロール監視
+        window.addEventListener("scroll", updateIndicator, { passive: true });
+        
+        // タイトルをHTML titleにも反映
         const h1 = content.querySelector("h1");
         if (h1) document.title = h1.textContent;
       })
       .catch(err => {
         content.innerHTML = `
-          <h1>読み込み失敗</h1>
-          <p>${String(err)}</p>
-          <p>ファイル名と場所（stories/内）を確認してください。</p>
+          <div class="page">
+            <div class="page-inner">
+              <h1>読み込み失敗</h1>
+              <p>${String(err)}</p>
+              <p>ファイル名と場所（stories/内）を確認してください。</p>
+            </div>
+          </div>
         `;
       });
   }
 </script>
-
 
 </body>
 </html>
