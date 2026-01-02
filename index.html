@@ -34,14 +34,14 @@
 <ul id="list"></ul>
 
 <script>
-fetch("/data/stories.json")
+fetch("data/stories.json")
   .then(res => res.json())
   .then(stories => {
     const ul = document.getElementById("list");
     stories.forEach(s => {
       const li = document.createElement("li");
       li.innerHTML = `
-        <a href="/stories/viewer.html?file=${s.file}">
+        <a href="stories/viewer.html?file=${s.file}">
           ${s.title}
         </a>
         <small>${s.date}</small>
@@ -53,3 +53,4 @@ fetch("/data/stories.json")
 
 </body>
 </html>
+
