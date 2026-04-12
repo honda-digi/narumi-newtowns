@@ -467,6 +467,10 @@
       <button class="btn" id="btnNew" title="新規">
         <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
+      <button class="btn" id="btnImport" title="ファイルを開く">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><polyline points="9 15 12 12 15 15"></polyline></svg>
+      </button>
+      <input type="file" id="fileInput" accept=".md,.txt,.text,text/plain,text/markdown" multiple="" hidden="">
     </div>
     <div class="header-title" id="docTitle">アバロン</div>
     <div class="header-right">
@@ -822,6 +826,43 @@
     saveCurrent();
     const f = createFile();
     openFile(f.id);
+  });
+
+  // ── Import local files ──
+  document.getElementById('btnImport').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+  });
+
+  document.getElementById('fileInput').addEventListener('change', (e) => {
+    const inputFiles = e.target.files;
+    if (!inputFiles || inputFiles.length === 0) return;
+    saveCurrent();
+
+    let lastFile = null;
+    let loaded = 0;
+    const total = inputFiles.length;
+
+    Array.from(inputFiles).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const content = ev.target.result;
+        // Strip extension for display name
+        const name = file.name.replace(/\.(md|txt|text)$/i, '') || file.name;
+        const f = createFile(name);
+        f.content = content;
+        saveFiles();
+        lastFile = f;
+        loaded++;
+        if (loaded === total) {
+          openFile(lastFile.id);
+          showToast(total === 1 ? `「${lastFile.name}」を読み込みました` : `${total} 件の原稿を読み込みました`);
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // Reset input so the same file can be re-imported
+    e.target.value = '';
   });
 
   document.getElementById('btnRename').addEventListener('click', () => {
