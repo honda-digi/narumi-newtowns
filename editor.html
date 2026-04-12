@@ -1,0 +1,886 @@
+<html lang="ja"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="縦書き帖">
+<title>縦書き帖</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi57im5pu444GN5biWIiwic2hvcnRfbmFtZSI6Iue4puabuOOBjeW4liIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWExNzE0IiwidGhlbWVfY29sb3IiOiIjMWExNzE0In0=">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&family=Shippori+Mincho:wght@400;500;600&display=swap');
+
+  :root {
+    --bg-primary: #f5f0e8;
+    --bg-secondary: #ebe4d8;
+    --bg-editor: #faf8f4;
+    --text-primary: #2c2418;
+    --text-secondary: #6b5d4f;
+    --text-muted: #9e8e7a;
+    --accent: #8b4513;
+    --accent-light: #c4956a;
+    --border: #d4c8b8;
+    --border-light: #e8dfd2;
+    --grid-line: rgba(139, 69, 19, 0.06);
+    --shadow: rgba(44, 36, 24, 0.08);
+    --preview-bg: #faf8f4;
+    --ruby-color: #8b4513;
+    --selection: rgba(139, 69, 19, 0.15);
+    --danger: #b5453a;
+    --toolbar-bg: rgba(245, 240, 232, 0.95);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--selection); }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    height: -webkit-fill-available;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    background: var(--toolbar-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-light);
+    z-index: 100;
+    min-height: 44px;
+  }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: 0.08em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 45%;
+    text-align: center;
+  }
+
+  .header-left, .header-right {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    min-width: 80px;
+  }
+  .header-right { justify-content: flex-end; }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.15s;
+    -webkit-user-select: none;
+  }
+  .btn:active { background: var(--border-light); }
+  .btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .btn-text {
+    width: auto;
+    padding: 0 10px;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Tab bar ── */
+  .tab-bar {
+    display: flex;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+  .tab.active {
+    color: var(--accent);
+  }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 1px;
+  }
+
+  /* ── Main content ── */
+  .main {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .panel {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+  }
+  .panel.active { display: flex; }
+
+  /* ── Editor ── */
+  .editor-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: var(--bg-editor);
+  }
+
+  .editor-textarea {
+    width: 100%;
+    height: 100%;
+    padding: 20px 16px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+    font-size: 16px;
+    line-height: 2;
+    letter-spacing: 0.04em;
+    resize: none;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+
+  .editor-textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* ── Preview (Tategaki) ── */
+  .preview-container {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    background: var(--preview-bg);
+    position: relative;
+  }
+
+  /* Manuscript paper grid overlay */
+  .preview-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(
+        to right,
+        var(--grid-line) 0px,
+        var(--grid-line) 1px,
+        transparent 1px,
+        transparent 2em
+      );
+    opacity: 0.7;
+    z-index: 1;
+  }
+
+  .preview-content {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    text-orientation: mixed;
+    padding: 28px 24px;
+    min-height: 100%;
+    font-family: 'Shippori Mincho', 'Noto Serif JP', serif;
+    font-size: 17px;
+    line-height: 2;
+    letter-spacing: 0.06em;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-all;
+    position: relative;
+    z-index: 2;
+  }
+
+  .preview-content h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-block-end: 2em;
+    letter-spacing: 0.12em;
+  }
+  .preview-content h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-block-end: 1.5em;
+    letter-spacing: 0.1em;
+  }
+  .preview-content h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-block-end: 1em;
+  }
+  .preview-content p {
+    margin-block-end: 1em;
+    text-indent: 1em;
+  }
+  .preview-content p:first-child { text-indent: 0; }
+  .preview-content em {
+    font-style: normal;
+    -webkit-text-emphasis: sesame;
+    text-emphasis: sesame;
+    -webkit-text-emphasis-position: over right;
+    text-emphasis-position: over right;
+  }
+  .preview-content strong {
+    font-weight: 700;
+  }
+  .preview-content blockquote {
+    border-right: 2px solid var(--accent-light);
+    padding-right: 12px;
+    margin-block-end: 1em;
+    color: var(--text-secondary);
+  }
+  .preview-content hr {
+    border: none;
+    border-right: 1px dashed var(--border);
+    margin: 0 1em;
+    height: auto;
+    min-height: 4em;
+    writing-mode: vertical-rl;
+  }
+  .preview-content code {
+    background: var(--bg-secondary);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+
+  /* Ruby support: 《ruby》 syntax */
+  ruby { ruby-align: center; }
+  ruby rt {
+    font-size: 0.5em;
+    color: var(--ruby-color);
+    font-weight: 400;
+  }
+
+  /* ── Files panel ── */
+  .files-container {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    margin-bottom: 6px;
+    background: var(--bg-editor);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .file-item:active { background: var(--bg-secondary); }
+  .file-item.active { border-color: var(--accent-light); background: rgba(139, 69, 19, 0.04); }
+
+  .file-info { flex: 1; min-width: 0; }
+  .file-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .file-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    display: flex;
+    gap: 12px;
+  }
+  .file-delete {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .file-delete:active { background: rgba(181, 69, 58, 0.1); color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+  .empty-state-text { font-size: 14px; line-height: 1.8; }
+
+  /* ── Status bar ── */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 16px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    background: var(--toolbar-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border-light);
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    min-height: 28px;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--bg-editor);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 320px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 20px 20px 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.06em;
+  }
+  .modal-body { padding: 8px 20px 20px; }
+  .modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--text-primary);
+    outline: none;
+  }
+  .modal-input:focus { border-color: var(--accent-light); }
+  .modal-actions {
+    display: flex;
+    border-top: 1px solid var(--border-light);
+  }
+  .modal-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .modal-btn:first-child { color: var(--text-muted); border-right: 1px solid var(--border-light); }
+  .modal-btn:active { background: var(--bg-secondary); }
+
+  /* ── Export toast ── */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2000;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <button class="btn" id="btnFiles" title="原稿一覧">
+        <svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h8l6 6v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path><polyline points="14 3 14 9 20 9"></polyline></svg>
+      </button>
+      <button class="btn" id="btnNew" title="新規">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      </button>
+    </div>
+    <div class="header-title" id="docTitle">アバロン</div>
+    <div class="header-right">
+      <button class="btn" id="btnRename" title="名前変更">
+        <svg viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path></svg>
+      </button>
+      <button class="btn" id="btnExport" title="書き出し">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab active" data-tab="editor">執筆</button>
+    <button class="tab" data-tab="preview">縦書き</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <!-- Editor panel -->
+    <div class="panel active" id="panelEditor">
+      <div class="editor-container">
+        <textarea class="editor-textarea" id="editor" placeholder="ここに本文を書く…
+
+マークダウン記法：
+# 見出し
+**太字**
+*圏点（傍点）*
+&gt; 引用
+---（区切り線）
+
+ルビ：漢字《かんじ》"></textarea>
+      </div>
+    </div>
+
+    <!-- Preview panel -->
+    <div class="panel" id="panelPreview">
+      <div class="preview-container">
+        <div class="preview-content" id="preview"></div>
+      </div>
+    </div>
+
+    <!-- Files panel -->
+    <div class="panel" id="panelFiles">
+      <div class="files-container" id="filesList"></div>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span id="charCount">5 字（空白込 8）</span>
+    <span id="saveStatus">保存済み</span>
+  </div>
+</div>
+
+<!-- Rename modal -->
+<div class="modal-overlay" id="renameModal">
+  <div class="modal">
+    <div class="modal-header">原稿の名前</div>
+    <div class="modal-body">
+      <input class="modal-input" id="renameInput" type="text" placeholder="原稿名を入力">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" id="renameCancel">取消</button>
+      <button class="modal-btn" id="renameConfirm">決定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  // ── State ──
+  const STORAGE_KEY = 'tategaki_files';
+  let files = [];
+  let currentFileId = null;
+  let saveTimer = null;
+
+  // ── DOM refs ──
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  const docTitle = document.getElementById('docTitle');
+  const charCount = document.getElementById('charCount');
+  const saveStatus = document.getElementById('saveStatus');
+  const filesList = document.getElementById('filesList');
+  const renameModal = document.getElementById('renameModal');
+  const renameInput = document.getElementById('renameInput');
+  const toast = document.getElementById('toast');
+
+  // ── Storage ──
+  function loadFiles() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      files = raw ? JSON.parse(raw) : [];
+    } catch { files = []; }
+  }
+
+  function saveFiles() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+  }
+
+  function getFile(id) { return files.find(f => f.id === id); }
+
+  // ── File operations ──
+  function createFile(name = '無題の原稿') {
+    const file = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      name,
+      content: '',
+      created: Date.now(),
+      updated: Date.now()
+    };
+    files.unshift(file);
+    saveFiles();
+    return file;
+  }
+
+  function openFile(id) {
+    // Save current first
+    saveCurrent();
+    currentFileId = id;
+    const file = getFile(id);
+    if (!file) return;
+    editor.value = file.content;
+    docTitle.textContent = file.name;
+    updateCharCount();
+    switchTab('editor');
+    saveStatus.textContent = '保存済み';
+  }
+
+  function saveCurrent() {
+    if (!currentFileId) return;
+    const file = getFile(currentFileId);
+    if (!file) return;
+    file.content = editor.value;
+    file.updated = Date.now();
+    saveFiles();
+    saveStatus.textContent = '保存済み';
+  }
+
+  function deleteFile(id) {
+    if (!confirm('この原稿を削除しますか？')) return;
+    files = files.filter(f => f.id !== id);
+    saveFiles();
+    if (currentFileId === id) {
+      if (files.length > 0) {
+        openFile(files[0].id);
+      } else {
+        const f = createFile();
+        openFile(f.id);
+      }
+    }
+    renderFilesList();
+  }
+
+  // ── Markdown → HTML (vertical-aware) ──
+  function mdToHtml(text) {
+    // Ruby: 漢字《かんじ》 → <ruby>漢字<rt>かんじ</rt></ruby>
+    text = text.replace(/([一-龥々ヶ]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+    // Also support ｜漢字《ruby》 for explicit base
+    text = text.replace(/\|([^《]+)《([^》]+)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+
+    const lines = text.split('\n');
+    let html = '';
+    let inBlockquote = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i];
+
+      // Headings
+      if (line.startsWith('### ')) {
+        if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+        html += `<h3>${inlineFormat(line.slice(4))}</h3>`;
+        continue;
+      }
+      if (line.startsWith('## ')) {
+        if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+        html += `<h2>${inlineFormat(line.slice(3))}</h2>`;
+        continue;
+      }
+      if (line.startsWith('# ')) {
+        if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+        html += `<h1>${inlineFormat(line.slice(2))}</h1>`;
+        continue;
+      }
+
+      // HR
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+        if (inBlockquote) { html += '</blockquote>'; inBlockquote = false; }
+        html += '<hr>';
+        continue;
+      }
+
+      // Blockquote
+      if (line.startsWith('> ')) {
+        if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; }
+        html += `<p>${inlineFormat(line.slice(2))}</p>`;
+        continue;
+      } else if (inBlockquote) {
+        html += '</blockquote>';
+        inBlockquote = false;
+      }
+
+      // Empty line
+      if (line.trim() === '') {
+        continue;
+      }
+
+      // Paragraph
+      html += `<p>${inlineFormat(line)}</p>`;
+    }
+
+    if (inBlockquote) html += '</blockquote>';
+    return html;
+  }
+
+  function inlineFormat(text) {
+    // Escape HTML
+    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // Re-apply ruby that was already processed
+    text = text.replace(/&lt;ruby&gt;/g, '<ruby>').replace(/&lt;\/ruby&gt;/g, '</ruby>')
+               .replace(/&lt;rt&gt;/g, '<rt>').replace(/&lt;\/rt&gt;/g, '</rt>');
+    // Bold
+    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Emphasis → 圏点 (sesame dots)
+    text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    // Inline code
+    text = text.replace(/`(.+?)`/g, '<code>$1</code>');
+    return text;
+  }
+
+  // ── UI Updates ──
+  function updateCharCount() {
+    const text = editor.value;
+    const count = text.replace(/\s/g, '').length;
+    const totalCount = text.length;
+    charCount.textContent = `${count} 字（空白込 ${totalCount}）`;
+  }
+
+  function updatePreview() {
+    const raw = editor.value;
+    // Process ruby before markdown (on raw text)
+    preview.innerHTML = mdToHtml(raw);
+  }
+
+  function renderFilesList() {
+    if (files.length === 0) {
+      filesList.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📝</div>
+          <div class="empty-state-text">原稿がありません<br>「＋」ボタンで新しい原稿を作成</div>
+        </div>`;
+      return;
+    }
+
+    filesList.innerHTML = files.map(f => {
+      const date = new Date(f.updated);
+      const dateStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
+      const count = f.content.replace(/\s/g, '').length;
+      const isActive = f.id === currentFileId;
+      return `
+        <div class="file-item ${isActive ? 'active' : ''}" data-id="${f.id}">
+          <div class="file-info">
+            <div class="file-name">${escHtml(f.name)}</div>
+            <div class="file-meta">
+              <span>${count} 字</span>
+              <span>${dateStr}</span>
+            </div>
+          </div>
+          <button class="file-delete" data-delete="${f.id}" title="削除">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>`;
+    }).join('');
+
+    // Event listeners
+    filesList.querySelectorAll('.file-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('.file-delete')) return;
+        openFile(el.dataset.id);
+      });
+    });
+    filesList.querySelectorAll('.file-delete').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteFile(el.dataset.delete);
+      });
+    });
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Tabs ──
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabName));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+    if (tabName === 'editor') {
+      document.getElementById('panelEditor').classList.add('active');
+    } else if (tabName === 'preview') {
+      updatePreview();
+      document.getElementById('panelPreview').classList.add('active');
+    } else if (tabName === 'files') {
+      saveCurrent();
+      renderFilesList();
+      document.getElementById('panelFiles').classList.add('active');
+    }
+  }
+
+  // ── Export ──
+  function exportFile() {
+    saveCurrent();
+    const file = getFile(currentFileId);
+    if (!file) return;
+    const blob = new Blob([file.content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${file.name}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('マークダウンを書き出しました');
+  }
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
+  }
+
+  // ── Event listeners ──
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+  });
+
+  document.getElementById('btnFiles').addEventListener('click', () => {
+    const filesPanel = document.getElementById('panelFiles');
+    if (filesPanel.classList.contains('active')) {
+      switchTab('editor');
+    } else {
+      switchTab('files');
+    }
+  });
+
+  document.getElementById('btnNew').addEventListener('click', () => {
+    saveCurrent();
+    const f = createFile();
+    openFile(f.id);
+  });
+
+  document.getElementById('btnRename').addEventListener('click', () => {
+    const file = getFile(currentFileId);
+    if (!file) return;
+    renameInput.value = file.name;
+    renameModal.classList.add('active');
+    setTimeout(() => { renameInput.focus(); renameInput.select(); }, 100);
+  });
+
+  document.getElementById('renameCancel').addEventListener('click', () => {
+    renameModal.classList.remove('active');
+  });
+
+  document.getElementById('renameConfirm').addEventListener('click', () => {
+    const file = getFile(currentFileId);
+    if (!file) return;
+    const name = renameInput.value.trim();
+    if (name) {
+      file.name = name;
+      docTitle.textContent = name;
+      saveFiles();
+    }
+    renameModal.classList.remove('active');
+  });
+
+  renameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('renameConfirm').click();
+  });
+
+  renameModal.addEventListener('click', (e) => {
+    if (e.target === renameModal) renameModal.classList.remove('active');
+  });
+
+  document.getElementById('btnExport').addEventListener('click', exportFile);
+
+  // Editor auto-save with debounce
+  editor.addEventListener('input', () => {
+    updateCharCount();
+    saveStatus.textContent = '編集中…';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      saveCurrent();
+    }, 800);
+  });
+
+  // ── Init ──
+  loadFiles();
+  if (files.length === 0) {
+    const f = createFile('アバロン');
+    f.content = '# アバロン\n\n';
+    saveFiles();
+    openFile(f.id);
+  } else {
+    openFile(files[0].id);
+  }
+  updateCharCount();
+})();
+</script>
+
+
+</body></html>
