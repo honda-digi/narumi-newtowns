@@ -160,9 +160,9 @@
   .hero-title {
     font-family: "Shippori Mincho", serif;
     font-weight: 600;
-    font-size: 10vw;
-    letter-spacing: 0.28em;
-    text-indent: 0.28em;
+    font-size: 7vw;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
     line-height: 1;
     color: var(--paper);
     text-shadow: 0 3px 40px rgba(0,0,0,0.5);
@@ -171,7 +171,6 @@
   .hero-title .char {
     display: inline-block;
     opacity: 0;
-    transform: translateY(40px);
   }
 
   .hero-romaji {
@@ -403,7 +402,7 @@
 
   .event-date {
     font-family: "EB Garamond", serif;
-    font-size: 9vw;
+    font-size: 5vw;
     font-weight: 300;
     line-height: 1;
     color: var(--paper);
@@ -435,46 +434,54 @@
 
   .event-name {
     font-family: "Shippori Mincho", serif;
-    font-size: 2vw;
+    font-size: 1.5vw;
     font-weight: 500;
     letter-spacing: 0.3em;
     text-indent: 0.3em;
-    margin-top: 2vw;
+    margin-top: 1.5vw;
     color: var(--paper);
     opacity: 0;
   }
 
   .event-booth {
-    display: inline-block;
-    margin-top: 3vw;
-    padding: 1.2vw 3.5vw;
-    border: 1px solid var(--gold);
-    color: var(--gold-bright);
-    font-family: "EB Garamond", serif;
-    font-size: 1.25vw;
-    letter-spacing: 0.3em;
-    font-style: italic;
-    position: relative;
+    display: block;
+    margin-top: 4vw;
+    color: var(--paper);
+    font-family: "Shippori Mincho", serif;
     opacity: 0;
     transform: scale(0.92);
   }
 
-  .event-booth::before {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    border: 1px solid var(--rule);
-    pointer-events: none;
+  .event-booth .booth-label {
+    display: block;
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.9vw;
+    letter-spacing: 0.5em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    margin-bottom: 1.5vw;
   }
 
   .event-booth strong {
-    font-style: normal;
     font-weight: 400;
-    font-size: 1.6vw;
-    letter-spacing: 0.2em;
+    font-size: 9vw;
+    letter-spacing: 0.15em;
     color: var(--paper);
     display: inline-block;
-    margin: 0 0.5em;
+    line-height: 1;
+    font-family: "EB Garamond", serif;
+  }
+
+  .event-booth .circle {
+    display: block;
+    font-family: "Shippori Mincho", serif;
+    font-size: 1.1vw;
+    letter-spacing: 0.4em;
+    text-indent: 0.4em;
+    color: var(--gold-bright);
+    margin-top: 1.8vw;
+    opacity: 0.9;
   }
 
   /* ─────────────────────────────────────────────
@@ -557,12 +564,13 @@
   }
 
   .playing .hero-title .char {
-    animation: charIn 1.4s cubic-bezier(0.19, 1, 0.22, 1) both;
+    animation: charFadeIn 3s 2.4s ease-out both;
   }
-  .playing .hero-title .char:nth-child(1) { animation-delay: 2.4s; }
-  .playing .hero-title .char:nth-child(2) { animation-delay: 2.7s; }
-  .playing .hero-title .char:nth-child(3) { animation-delay: 3.0s; }
-  .playing .hero-title .char:nth-child(4) { animation-delay: 3.3s; }
+  /* 全文字同時にフェード(個別ディレイ不要) */
+  .playing .hero-title .char:nth-child(1),
+  .playing .hero-title .char:nth-child(2),
+  .playing .hero-title .char:nth-child(3),
+  .playing .hero-title .char:nth-child(4) { animation-delay: 2.4s; }
 
   .playing .hero-romaji {
     animation: fadeUp 1.8s 4.8s ease-out both;
@@ -572,9 +580,9 @@
     animation: fadeUp 1.6s 6s ease-out both;
   }
 
-  @keyframes charIn {
-    from { opacity: 0; transform: translateY(40px); }
-    to   { opacity: 1; transform: translateY(0); }
+  @keyframes charFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
 
   @keyframes fadeUp {
@@ -823,7 +831,7 @@
           <span class="meta-label">Published in</span>
           <div class="meta-value">
             <strong>daisy chain</strong>
-            <span class="small">第31号 / 中編小説</span>
+            <span class="small">最新号 / 中編小説</span>
           </div>
         </div>
       </div>
@@ -837,7 +845,9 @@
       </div>
       <div class="event-name">文学フリマ東京 四十二</div>
       <div class="event-booth">
-        ブース&nbsp;&nbsp;<strong>Q &#8212; 87</strong>&nbsp;&nbsp;daisy chain
+        <span class="booth-label">Booth</span>
+        <strong>Q &#8212; 87</strong>
+        <span class="circle">daisy chain</span>
       </div>
     </div>
 
