@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アバロン ティザー動画 | 本多篤史</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+
+<style>
+  /*
+    ═══════════════════════════════════════════════════════════════
+    AVALON TEASER — 30sec single-shot CSS animation (16:9)
+    ═══════════════════════════════════════════════════════════════
+
+    録画方法:
+    1. このHTMLをブラウザで開く(Chrome推奨 / 全画面F11)
+    2. 画面録画開始 (QuickTime / OBS / Screen Studio)
+    3. 「▶ PLAY」をクリック
+    4. 30秒経過後に録画停止
+
+    キー操作:
+    - クリック or Space : 開始
+    - R : リスタート
+
+    タイムライン (total 60s):
+    0.0-0.5s   黒画面(録画導入)
+    0.5-10s    HERO    海 Ken Burns + タイトル
+    10-22s     EXCERPT 冒頭(三行を丁寧に)
+    22-34s     SYNOPSIS
+    34-45s     META
+    45-57s     EVENT
+    57-60s     END     エンドカード→黒
+    ═══════════════════════════════════════════════════════════════
+  */
+
+  :root {
+    --ink: #0b1826;
+    --ink-deep: #050d17;
+    --paper: #f3ede1;
+    --paper-dim: #e8dfce;
+    --gold: #b08644;
+    --gold-bright: #c9a05f;
+    --sea: #1d3a52;
+    --rule: rgba(243, 237, 225, 0.18);
+
+    /* 動画のアスペクト比: 16:9 */
+    --ar-w: 16;
+    --ar-h: 9;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: #000;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: "Shippori Mincho", "游明朝", "Yu Mincho", "Hiragino Mincho ProN", serif;
+    color: var(--paper);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "palt" 1;
+    letter-spacing: 0.02em;
+  }
+
+  /* ───── 16:9 ステージ。ウィンドウいっぱいに収める ───── */
+  .stage {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: #000;
+  }
+
+  .frame {
+    width: 100vw;
+    height: calc(100vw * 9 / 16);
+    max-height: 100vh;
+    max-width: calc(100vh * 16 / 9);
+    position: relative;
+    overflow: hidden;
+    background: var(--ink-deep);
+  }
+
+  /* 全シーン共通 */
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    will-change: opacity, transform;
+  }
+
+  /* ─────────────────────────────────────────────
+     SCENE 1 : HERO (0.5 - 6.5s)
+     ───────────────────────────────────────────── */
+  .scene-hero {
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: -5%;
+    background-image: url("https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/%E5%A4%A7%E6%9D%91%E7%B7%9A%E3%81%8B%E3%82%89%E6%9C%9B%E3%82%80%E5%A4%A7%E6%9D%91%E6%B9%BE%E3%81%AE%E5%A4%95%E7%84%BC%E3%81%91_%2848768415352%29.jpg/1920px-%E5%A4%A7%E6%9D%91%E7%B7%9A%E3%81%8B%E3%82%89%E6%9C%9B%E3%82%80%E5%A4%A7%E6%9D%91%E6%B9%BE%E3%81%AE%E5%A4%95%E7%84%BC%E3%81%91_%2848768415352%29.jpg");
+    background-size: cover;
+    background-position: center 55%;
+    filter: saturate(0.7) brightness(0.5) contrast(1.08);
+    transform: scale(1);
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at center, transparent 30%, rgba(5,13,23,0.6) 100%),
+      linear-gradient(180deg, rgba(5,13,23,0.4) 0%, rgba(5,13,23,0.3) 50%, rgba(5,13,23,0.85) 100%);
+  }
+
+  .hero-grain {
+    position: absolute; inset: 0;
+    opacity: 0.3;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.75 0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .hero-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 6%;
+    text-align: center;
+  }
+
+  .hero-series {
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 1vw;
+    letter-spacing: 0.45em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    margin-bottom: 2vw;
+    opacity: 0;
+  }
+
+  .hero-series::before,
+  .hero-series::after {
+    content: "";
+    display: inline-block;
+    width: 2.5vw; height: 1px;
+    background: var(--gold);
+    vertical-align: middle;
+    margin: 0 1vw;
+  }
+
+  .hero-title {
+    font-family: "Shippori Mincho", serif;
+    font-weight: 600;
+    font-size: 10vw;
+    letter-spacing: 0.28em;
+    text-indent: 0.28em;
+    line-height: 1;
+    color: var(--paper);
+    text-shadow: 0 3px 40px rgba(0,0,0,0.5);
+  }
+
+  .hero-title .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  .hero-romaji {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: 1.5vw;
+    letter-spacing: 0.6em;
+    text-indent: 0.6em;
+    color: var(--gold-bright);
+    margin-top: 2.5vw;
+    opacity: 0;
+  }
+
+  .hero-byline {
+    position: absolute;
+    bottom: 7%;
+    font-family: "Shippori Mincho", serif;
+    font-size: 0.95vw;
+    letter-spacing: 0.45em;
+    text-indent: 0.45em;
+    color: var(--paper);
+    opacity: 0;
+  }
+
+  .hero-byline .label {
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.7vw;
+    letter-spacing: 0.3em;
+    color: var(--gold-bright);
+    display: block;
+    margin-bottom: 0.6vw;
+  }
+
+  /* ─────────────────────────────────────────────
+     SCENE 2 : EXCERPT (6.5 - 12s)
+     ───────────────────────────────────────────── */
+  .scene-excerpt {
+    background: var(--ink);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6% 12%;
+  }
+
+  .excerpt-mark {
+    text-align: center;
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.9vw;
+    letter-spacing: 0.4em;
+    color: var(--gold);
+    margin-bottom: 3vw;
+    opacity: 0;
+  }
+
+  .excerpt-line {
+    font-family: "Shippori Mincho", serif;
+    font-size: 1.6vw;
+    line-height: 2.4;
+    letter-spacing: 0.08em;
+    color: var(--paper);
+    max-width: 60vw;
+    margin: 0 auto;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .excerpt-line + .excerpt-line { margin-top: 1.2em; }
+
+  .excerpt-highlight {
+    color: var(--gold-bright);
+  }
+
+  /* ─────────────────────────────────────────────
+     SCENE 3 : SYNOPSIS (12 - 17s)
+     ───────────────────────────────────────────── */
+  .scene-synopsis {
+    background: linear-gradient(180deg, var(--ink) 0%, var(--ink-deep) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6% 10%;
+  }
+
+  .synopsis-label {
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.85vw;
+    letter-spacing: 0.4em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    margin-bottom: 1.5vw;
+    display: flex;
+    align-items: center;
+    gap: 1vw;
+    opacity: 0;
+  }
+
+  .synopsis-label::before {
+    content: "";
+    width: 2.5vw; height: 1px;
+    background: var(--gold);
+  }
+
+  .synopsis-heading {
+    font-family: "Shippori Mincho", serif;
+    font-size: 3.2vw;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1.6;
+    color: var(--paper);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .synopsis-heading em {
+    font-style: normal;
+    color: var(--gold-bright);
+  }
+
+  .synopsis-sub {
+    margin-top: 2.5vw;
+    font-family: "Shippori Mincho", serif;
+    font-size: 1.1vw;
+    line-height: 2.2;
+    color: var(--paper);
+    max-width: 45vw;
+    opacity: 0;
+  }
+
+  /* ─────────────────────────────────────────────
+     SCENE 4 : META (17 - 22s)
+     ───────────────────────────────────────────── */
+  .scene-meta {
+    background: var(--ink-deep);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6% 8%;
+  }
+
+  .meta-title {
+    text-align: center;
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.9vw;
+    letter-spacing: 0.4em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    margin-bottom: 3vw;
+    opacity: 0;
+  }
+
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    max-width: 80%;
+    margin: 0 auto;
+  }
+
+  .meta-item {
+    padding: 2vw 2vw;
+    border-right: 1px solid var(--rule);
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  .meta-item:last-child { border-right: none; }
+
+  .meta-label {
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.7vw;
+    letter-spacing: 0.35em;
+    color: var(--gold-bright);
+    text-transform: uppercase;
+    margin-bottom: 1vw;
+    display: block;
+  }
+
+  .meta-value {
+    font-family: "Shippori Mincho", serif;
+    font-size: 1.3vw;
+    line-height: 1.7;
+    letter-spacing: 0.08em;
+    color: var(--paper);
+  }
+
+  .meta-value strong {
+    font-weight: 600;
+    color: var(--gold-bright);
+  }
+
+  .meta-value .small {
+    display: block;
+    font-size: 0.75vw;
+    opacity: 0.65;
+    margin-top: 0.5vw;
+    letter-spacing: 0.2em;
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+  }
+
+  /* ─────────────────────────────────────────────
+     SCENE 5 : EVENT (22 - 28s)
+     ───────────────────────────────────────────── */
+  .scene-event {
+    background: var(--ink-deep);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5% 8%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .event-line {
+    position: absolute;
+    top: 0; left: 50%;
+    width: 1px; height: 0;
+    background: var(--gold);
+    transform: translateX(-50%);
+  }
+
+  .event-date {
+    font-family: "EB Garamond", serif;
+    font-size: 9vw;
+    font-weight: 300;
+    line-height: 1;
+    color: var(--paper);
+    letter-spacing: 0.02em;
+    opacity: 0;
+  }
+
+  .event-date .month {
+    font-style: italic;
+    color: var(--gold-bright);
+    display: inline-block;
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+
+  .event-date .day {
+    display: inline-block;
+    transform: translateX(20px);
+    opacity: 0;
+  }
+
+  .event-date .dot {
+    color: var(--gold);
+    margin: 0 0.3em;
+    display: inline-block;
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  .event-name {
+    font-family: "Shippori Mincho", serif;
+    font-size: 2vw;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    margin-top: 2vw;
+    color: var(--paper);
+    opacity: 0;
+  }
+
+  .event-booth {
+    display: inline-block;
+    margin-top: 3vw;
+    padding: 1.2vw 3.5vw;
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    font-family: "EB Garamond", serif;
+    font-size: 1.25vw;
+    letter-spacing: 0.3em;
+    font-style: italic;
+    position: relative;
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  .event-booth::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+
+  .event-booth strong {
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.6vw;
+    letter-spacing: 0.2em;
+    color: var(--paper);
+    display: inline-block;
+    margin: 0 0.5em;
+  }
+
+  /* ─────────────────────────────────────────────
+     SCENE 6 : END CARD (28 - 30s)
+     ───────────────────────────────────────────── */
+  .scene-end {
+    background: var(--ink-deep);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .end-title {
+    font-family: "Shippori Mincho", serif;
+    font-weight: 600;
+    font-size: 6vw;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+    color: var(--paper);
+    opacity: 0;
+  }
+
+  .end-byline {
+    position: absolute;
+    bottom: 14%;
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 0.9vw;
+    letter-spacing: 0.35em;
+    color: var(--gold-bright);
+    opacity: 0;
+  }
+
+  /*
+    ═══════════════════════════════════════════════════════════════
+    TIMELINE (playing class で発火)
+    ═══════════════════════════════════════════════════════════════
+  */
+
+  .playing .scene-hero     { animation: showHero     10s   0.5s  both; }
+  .playing .scene-excerpt  { animation: showScene    12s   10s   both; }
+  .playing .scene-synopsis { animation: showScene    12s   22s   both; }
+  .playing .scene-meta     { animation: showScene    11s   34s   both; }
+  .playing .scene-event    { animation: showScene    12s   45s   both; }
+  .playing .scene-end      { animation: showEnd      3s    57s   both; }
+
+  @keyframes showHero {
+    0%          { opacity: 0; }
+    4%          { opacity: 1; }
+    92%         { opacity: 1; }
+    100%        { opacity: 0; }
+  }
+
+  @keyframes showScene {
+    0%          { opacity: 0; }
+    6%          { opacity: 1; }
+    92%         { opacity: 1; }
+    100%        { opacity: 0; }
+  }
+
+  @keyframes showEnd {
+    0%   { opacity: 0; }
+    30%  { opacity: 1; }
+    70%  { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* ─── HERO 内アニメーション ─── */
+  .playing .hero-bg {
+    animation: kenBurns 10.5s 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+  @keyframes kenBurns {
+    from { transform: scale(1.05) translate(-1%, 0); }
+    to   { transform: scale(1.22) translate(3%, -3%); }
+  }
+
+  .playing .hero-series {
+    animation: fadeUp 1.6s 1.5s ease-out both;
+  }
+
+  .playing .hero-title .char {
+    animation: charIn 1.4s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  .playing .hero-title .char:nth-child(1) { animation-delay: 2.4s; }
+  .playing .hero-title .char:nth-child(2) { animation-delay: 2.7s; }
+  .playing .hero-title .char:nth-child(3) { animation-delay: 3.0s; }
+  .playing .hero-title .char:nth-child(4) { animation-delay: 3.3s; }
+
+  .playing .hero-romaji {
+    animation: fadeUp 1.8s 4.8s ease-out both;
+  }
+
+  .playing .hero-byline {
+    animation: fadeUp 1.6s 6s ease-out both;
+  }
+
+  @keyframes charIn {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── EXCERPT 内アニメーション (相対時刻: 10s起点) ─── */
+  .playing .excerpt-mark {
+    animation: fadeUp 1.4s 10.5s ease-out both;
+  }
+  .playing .excerpt-line-1 {
+    animation: fadeUp 2s 12s ease-out both;
+  }
+  .playing .excerpt-line-2 {
+    animation: fadeUp 2s 15s ease-out both;
+  }
+  .playing .excerpt-line-3 {
+    animation: fadeUp 2s 18s ease-out both;
+  }
+
+  /* ─── SYNOPSIS (22s 起点) ─── */
+  .playing .synopsis-label {
+    animation: fadeUp 1.2s 22.5s ease-out both;
+  }
+  .playing .synopsis-heading {
+    animation: fadeUp 1.8s 23.5s ease-out both;
+  }
+  .playing .synopsis-sub {
+    animation: fadeUp 1.8s 26s ease-out both;
+  }
+
+  /* ─── META (34s 起点) ─── */
+  .playing .meta-title {
+    animation: fadeUp 1.2s 34.5s ease-out both;
+  }
+  .playing .meta-item {
+    animation: fadeUp 1.6s ease-out both;
+  }
+  .playing .meta-item:nth-child(1) { animation-delay: 36s; }
+  .playing .meta-item:nth-child(2) { animation-delay: 36.8s; }
+  .playing .meta-item:nth-child(3) { animation-delay: 37.6s; }
+
+  /* ─── EVENT (45s 起点) ─── */
+  .playing .event-line {
+    animation: lineDrop 1.6s 45.5s cubic-bezier(0.76, 0, 0.24, 1) both;
+  }
+  @keyframes lineDrop {
+    from { height: 0; }
+    to   { height: 20%; }
+  }
+
+  .playing .event-date {
+    animation: fadeIn 0.3s 46.5s ease-out both;
+  }
+  .playing .event-date .month {
+    animation: slideInLeft 1.4s 46.7s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  .playing .event-date .dot {
+    animation: pop 0.6s 48s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .playing .event-date .day {
+    animation: slideInRight 1.4s 47.3s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  .playing .event-name {
+    animation: fadeUp 1.4s 49.2s ease-out both;
+  }
+  .playing .event-booth {
+    animation: popSoft 1.2s 50.6s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+
+  @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(60px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes pop {
+    from { opacity: 0; transform: scale(0); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes popSoft {
+    from { opacity: 0; transform: scale(0.88); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  /* ─── END CARD (57s 起点) ─── */
+  .playing .end-title {
+    animation: endTitleIn 2.2s 57.2s cubic-bezier(0.19, 1, 0.22, 1) both;
+  }
+  .playing .end-byline {
+    animation: fadeUp 1.6s 58s ease-out both;
+  }
+
+  @keyframes endTitleIn {
+    0%   { opacity: 0; letter-spacing: 0.5em; }
+    40%  { opacity: 1; }
+    100% { opacity: 1; letter-spacing: 0.3em; }
+  }
+
+  /*
+    ═══════════════════════════════════════════════════════════════
+    START SCREEN (録画時は見えない状態にしてから録画開始する)
+    ═══════════════════════════════════════════════════════════════
+  */
+  .start-overlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1.5rem;
+    cursor: pointer;
+    transition: opacity 0.4s;
+  }
+
+  .start-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .start-btn {
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    letter-spacing: 0.4em;
+    color: var(--gold-bright);
+    padding: 1rem 3.5rem;
+    border: 1px solid var(--gold);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .start-btn:hover {
+    background: var(--gold);
+    color: var(--ink-deep);
+  }
+
+  .start-hint {
+    font-family: "EB Garamond", serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--paper);
+    opacity: 0.5;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  /* 再起動ボタン(録画時は画面外に) */
+  .restart-btn {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 10000;
+    font-family: "EB Garamond", serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--paper);
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--rule);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    opacity: 0.2;
+    transition: opacity 0.3s;
+  }
+  .restart-btn:hover { opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="frame" id="frame">
+
+    <!-- ═══ SCENE 1: HERO ═══ -->
+    <div class="scene scene-hero">
+      <div class="hero-bg"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-grain"></div>
+      <div class="hero-content">
+        <div class="hero-series">Narumi New Towns</div>
+        <h1 class="hero-title">
+          <span class="char">ア</span><span class="char">バ</span><span class="char">ロ</span><span class="char">ン</span>
+        </h1>
+        <div class="hero-romaji">AVALON</div>
+        <div class="hero-byline">
+          <span class="label">a novella by</span>
+          本多 篤史
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SCENE 2: EXCERPT ═══ -->
+    <div class="scene scene-excerpt">
+      <div class="excerpt-mark">── 冒頭より ──</div>
+      <div class="excerpt-line excerpt-line-1">
+        　波しぶきが窓を叩く。
+      </div>
+      <div class="excerpt-line excerpt-line-2">
+        　五月の大村湾は凪いでいた。凪いでいるのに船は跳ねる。
+      </div>
+      <div class="excerpt-line excerpt-line-3">
+        　<span class="excerpt-highlight">琴の海</span>、と昔の人はこの内海を呼んだ。
+      </div>
+    </div>
+
+    <!-- ═══ SCENE 3: SYNOPSIS ═══ -->
+    <div class="scene scene-synopsis">
+      <div class="synopsis-label">Synopsis</div>
+      <h2 class="synopsis-heading">
+        三世代が<em>琴の海</em>のほとりで<br>ひと夜を共にする物語。
+      </h2>
+      <p class="synopsis-sub">
+        五月、化学者の佳樹は二十歳の息子・樟をつれて、<br>
+        長崎・大村湾を見下ろす坂の上の実家を訪ねる。<br>
+        認知症の進んだ老父が、一人で書きつづった特許公報。<br>
+        いびつだが青く光る、小さな球体──。
+      </p>
+    </div>
+
+    <!-- ═══ SCENE 4: META ═══ -->
+    <div class="scene scene-meta">
+      <div class="meta-title">── About the Work ──</div>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <span class="meta-label">Title</span>
+          <div class="meta-value">
+            <strong>アバロン</strong>
+            <span class="small">Avalon</span>
+          </div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Author</span>
+          <div class="meta-value">
+            本多 篤史
+            <span class="small">Atsushi Honda</span>
+          </div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Published in</span>
+          <div class="meta-value">
+            <strong>daisy chain</strong>
+            <span class="small">第31号 / 中編小説</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SCENE 5: EVENT ═══ -->
+    <div class="scene scene-event">
+      <div class="event-line"></div>
+      <div class="event-date">
+        <span class="month">May</span><span class="dot">.</span><span class="day">04</span>
+      </div>
+      <div class="event-name">文学フリマ東京 四十二</div>
+      <div class="event-booth">
+        ブース&nbsp;&nbsp;<strong>Q &#8212; 87</strong>&nbsp;&nbsp;daisy chain
+      </div>
+    </div>
+
+    <!-- ═══ SCENE 6: END CARD ═══ -->
+    <div class="scene scene-end">
+      <div class="end-title">アバロン</div>
+      <div class="end-byline">── 本多 篤史 ──</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- スタート画面 -->
+<div class="start-overlay" id="startOverlay">
+  <button class="start-btn" id="startBtn">▶ &nbsp; P L A Y</button>
+  <div class="start-hint">
+    画面録画を開始してから &nbsp;PLAY&nbsp; を押してください<br>
+    <span style="opacity:0.5;">( 尺: 60秒 &nbsp;&middot;&nbsp; R でリスタート )</span>
+  </div>
+</div>
+
+<!-- リスタートボタン -->
+<button class="restart-btn" id="restartBtn">⟳ RESTART</button>
+
+<script>
+  const frame = document.getElementById('frame');
+  const startOverlay = document.getElementById('startOverlay');
+  const startBtn = document.getElementById('startBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function play() {
+    frame.classList.remove('playing');
+    // 強制リフロー(アニメーションをリセットするため)
+    void frame.offsetWidth;
+    frame.classList.add('playing');
+    startOverlay.classList.add('hidden');
+  }
+
+  function restart() {
+    frame.classList.remove('playing');
+    void frame.offsetWidth;
+    frame.classList.add('playing');
+  }
+
+  startBtn.addEventListener('click', play);
+  startOverlay.addEventListener('click', play);
+  restartBtn.addEventListener('click', restart);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (startOverlay.classList.contains('hidden')) {
+        restart();
+      } else {
+        play();
+      }
+    }
+    if (e.key === 'r' || e.key === 'R') {
+      if (startOverlay.classList.contains('hidden')) restart();
+    }
+  });
+</script>
+
+</body>
+</html>
