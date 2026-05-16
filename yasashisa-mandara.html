@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>やさしさ曼荼羅診断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --ink-2:#3a3a3a;
+    --ink-3:#6a6a6a;
+    --ink-4:#9a9a9a;
+    --ink-5:#cfcfcf;
+    --paper:#fafaf7;
+    --paper-2:#f3f2ec;
+    --line:#d8d6cf;
+    --accent:#1a1a1a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper);color:var(--ink-2);font-family:'Shippori Mincho','Noto Sans JP',serif;font-weight:400;-webkit-font-smoothing:antialiased;font-feature-settings:"palt";letter-spacing:0.02em;line-height:1.7}
+  body{min-height:100vh}
+
+  /* 共通レイアウト */
+  .wrap{max-width:760px;margin:0 auto;padding:80px 32px 120px}
+  @media(max-width:640px){.wrap{padding:48px 24px 80px}}
+
+  /* タイポグラフィ */
+  .display{font-family:'Cormorant Garamond','Shippori Mincho',serif;font-weight:300;letter-spacing:0.04em}
+  h1{font-family:'Shippori Mincho',serif;font-weight:500;font-size:clamp(28px,4.5vw,40px);color:var(--ink);letter-spacing:0.08em;line-height:1.4}
+  h2{font-family:'Shippori Mincho',serif;font-weight:500;font-size:18px;color:var(--ink);letter-spacing:0.12em}
+  .label{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;letter-spacing:0.15em;color:var(--ink-4);font-size:13px;text-transform:lowercase}
+  .small{font-size:13px;color:var(--ink-3);line-height:1.8}
+
+  /* INTRO */
+  .intro{text-align:center}
+  .intro-mark{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;color:var(--ink-4);font-size:14px;letter-spacing:0.3em;margin-bottom:36px;text-transform:lowercase}
+  .intro h1{margin-bottom:48px}
+  .intro h1 .ja{display:block;font-size:0.65em;letter-spacing:0.3em;color:var(--ink-3);margin-top:18px;font-weight:400}
+  .divider{width:1px;height:60px;background:var(--ink-5);margin:48px auto}
+  .divider-h{width:40px;height:1px;background:var(--ink-5);margin:32px auto}
+  .intro p{max-width:520px;margin:0 auto 24px;font-size:15px;color:var(--ink-2);line-height:2}
+  .intro-meta{margin-top:64px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap}
+  .intro-meta>div{text-align:center}
+  .intro-meta .num{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:42px;color:var(--ink);line-height:1}
+  .intro-meta .cap{font-size:11px;letter-spacing:0.25em;color:var(--ink-4);margin-top:8px;text-transform:uppercase}
+
+  /* ボタン */
+  .btn{display:inline-block;background:var(--ink);color:var(--paper);border:none;padding:18px 56px;font-family:'Shippori Mincho',serif;font-size:14px;letter-spacing:0.3em;cursor:pointer;transition:all .35s ease;font-weight:500}
+  .btn:hover{background:#000;transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink-5)}
+  .btn.ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .btn-row{margin-top:56px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+
+  /* QUIZ */
+  .quiz{display:none}
+  .quiz.active{display:block}
+  .progress-bar{position:sticky;top:0;background:var(--paper);padding:20px 0 16px;z-index:10;border-bottom:1px solid var(--line)}
+  .progress-inner{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .progress-cat{font-size:11px;letter-spacing:0.3em;color:var(--ink-4);text-transform:uppercase}
+  .progress-num{font-family:'Cormorant Garamond',serif;font-weight:300;color:var(--ink)}
+  .progress-num .now{font-size:28px}
+  .progress-num .total{font-size:14px;color:var(--ink-4)}
+  .progress-track{height:1px;background:var(--ink-5);position:relative}
+  .progress-fill{position:absolute;top:0;left:0;height:1px;background:var(--ink);transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+  .question-block{padding:80px 0 60px;min-height:480px;display:flex;flex-direction:column;justify-content:center}
+  @media(max-width:640px){.question-block{padding:48px 0 32px;min-height:400px}}
+  .q-cat{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-4);font-size:13px;letter-spacing:0.2em;margin-bottom:16px;text-transform:lowercase}
+  .q-sub{font-size:11px;letter-spacing:0.35em;color:var(--ink-4);text-transform:uppercase;margin-bottom:32px}
+  .q-text{font-family:'Shippori Mincho',serif;font-size:clamp(20px,3vw,26px);font-weight:500;color:var(--ink);line-height:1.7;letter-spacing:0.04em;margin-bottom:56px}
+
+  .scale{display:flex;flex-direction:column;gap:2px}
+  .scale-row{display:flex;align-items:center;gap:20px;padding:18px 24px;border:1px solid transparent;border-bottom:1px solid var(--line);cursor:pointer;transition:all .25s ease;background:transparent}
+  .scale-row:first-child{border-top:1px solid var(--line)}
+  .scale-row:hover{background:var(--paper-2);padding-left:32px}
+  .scale-row.selected{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .scale-row.selected .scale-num,.scale-row.selected .scale-text{color:var(--paper)}
+  .scale-num{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:24px;color:var(--ink-4);min-width:32px;line-height:1}
+  .scale-text{font-size:15px;color:var(--ink-2);flex:1;font-family:'Shippori Mincho',serif}
+
+  .nav{margin-top:48px;display:flex;justify-content:space-between;align-items:center;padding-top:32px;border-top:1px solid var(--line)}
+  .nav-btn{background:none;border:none;color:var(--ink-3);font-family:'Cormorant Garamond',serif;font-style:italic;letter-spacing:0.2em;font-size:14px;cursor:pointer;padding:8px 0;transition:color .2s;text-transform:lowercase}
+  .nav-btn:hover:not(:disabled){color:var(--ink)}
+  .nav-btn:disabled{opacity:0.3;cursor:not-allowed}
+  .nav-btn.primary{background:var(--ink);color:var(--paper);padding:14px 36px;font-family:'Shippori Mincho',serif;font-style:normal;font-size:13px;letter-spacing:0.3em}
+  .nav-btn.primary:hover{background:#000}
+
+  /* RESULT */
+  .result{display:none}
+  .result.active{display:block}
+  .result-head{text-align:center;margin-bottom:80px}
+  .result-head .label{margin-bottom:24px;display:block}
+  .result-head h1{margin-bottom:32px}
+  .result-head .lead{color:var(--ink-3);font-size:15px;max-width:520px;margin:0 auto;line-height:2}
+
+  /* セクション見出し */
+  .section-cap{text-align:center;margin-bottom:48px}
+  .section-cap .label{display:block;margin-bottom:12px}
+  .section-cap h2{font-size:22px;letter-spacing:0.15em}
+
+  /* 曼荼羅 */
+  .mandala-section{margin:0 auto 96px;max-width:680px}
+  .mandala-wrap{width:100%;aspect-ratio:680/700;margin-bottom:32px}
+  .mandala-wrap svg{width:100%;height:100%;display:block}
+  .dl-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+  .btn-dl{background:var(--ink);color:var(--paper);border:none;padding:12px 32px;font-family:'Shippori Mincho',serif;font-size:12px;letter-spacing:0.25em;cursor:pointer;transition:all .25s ease;font-weight:500}
+  .btn-dl:hover{background:#000;transform:translateY(-1px)}
+  .btn-dl.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink-5)}
+  .btn-dl.ghost:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .mandala-note{text-align:center;font-size:12px;color:var(--ink-4);letter-spacing:0.1em;margin-top:8px}
+
+  /* レーダーチャート */
+  .radar-section{margin:0 auto 96px;max-width:560px}
+  .radar-wrap{position:relative;width:100%;aspect-ratio:1/1}
+  .radar-wrap svg{width:100%;height:100%}
+
+  /* 強み・弱み */
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:80px}
+  @media(max-width:640px){.summary-grid{grid-template-columns:1fr}}
+  .summary-cell{background:var(--paper);padding:40px 32px}
+  .summary-cell .label{display:block;margin-bottom:16px}
+  .summary-cell h3{font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);font-weight:500;letter-spacing:0.06em;margin-bottom:8px}
+  .summary-cell .en{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-4);font-size:14px;letter-spacing:0.15em;margin-bottom:20px}
+  .summary-cell .desc{font-size:14px;color:var(--ink-3);line-height:2}
+
+  /* カテゴリ別バー */
+  .breakdown{margin-bottom:80px}
+  .breakdown h2{margin-bottom:8px}
+  .breakdown .label{display:block;margin-bottom:48px}
+  .bar-row{display:grid;grid-template-columns:140px 1fr 50px;gap:24px;align-items:center;padding:20px 0;border-bottom:1px solid var(--line)}
+  @media(max-width:640px){.bar-row{grid-template-columns:100px 1fr 44px;gap:16px}}
+  .bar-row:first-of-type{border-top:1px solid var(--line)}
+  .bar-label{font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);letter-spacing:0.06em}
+  .bar-label .en{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-4);font-size:11px;display:block;letter-spacing:0.15em;margin-top:2px}
+  .bar-track{height:2px;background:var(--ink-5);position:relative}
+  .bar-fill{position:absolute;top:0;left:0;height:100%;background:var(--ink);transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+  .bar-val{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--ink);font-weight:300;text-align:right;line-height:1}
+
+  /* サブ要素詳細 */
+  .detail{margin-bottom:80px}
+  .detail-cat{margin-bottom:56px}
+  .detail-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:12px;margin-bottom:28px}
+  .detail-head h3{font-family:'Shippori Mincho',serif;font-size:18px;font-weight:500;color:var(--ink);letter-spacing:0.1em}
+  .detail-head .en{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--ink-4);font-size:13px;letter-spacing:0.15em}
+  .sub-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}
+  @media(max-width:640px){.sub-grid{grid-template-columns:repeat(2,1fr)}}
+  .sub-cell{background:var(--paper);padding:20px 16px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:8px;min-height:90px}
+  .sub-name{font-family:'Shippori Mincho',serif;font-size:13px;color:var(--ink-2);letter-spacing:0.04em}
+  .sub-score{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--ink);font-weight:300;line-height:1}
+  .sub-dots{display:flex;justify-content:center;gap:3px;margin-top:4px}
+  .sub-dot{width:5px;height:5px;border-radius:50%;background:var(--ink-5)}
+  .sub-dot.on{background:var(--ink)}
+
+  .foot{margin-top:96px;text-align:center;padding-top:48px;border-top:1px solid var(--line)}
+  .foot .label{display:block;margin-bottom:16px}
+  .foot p{font-size:14px;color:var(--ink-3);line-height:2;max-width:520px;margin:0 auto 32px}
+
+  /* アニメーション */
+  .fade-in{animation:fadeIn .6s ease both}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- INTRO -->
+  <section id="intro" class="intro fade-in">
+    <div class="intro-mark">— diagnosis —</div>
+    <h1>やさしさの曼荼羅<span class="ja">自分のなかにある「やさしさ」を測る</span></h1>
+    <div class="divider"></div>
+    <p>「やさしい」とは、ひとつの色ではなく、いくつもの要素が重なってできあがる手織りの布のようなものです。受け止めること。誠実であること。表現すること。ゆるすこと。助けること。与えること。穏やかであること。そして、自らの脆さを知っていること。</p>
+    <p>この診断は、あなたのなかにある八つの要素が、それぞれどのくらいの強さでそこにあるのかを、百の問いを通してそっと映しだします。優劣ではありません。あなたの輪郭です。</p>
+    <div class="intro-meta">
+      <div><div class="num">100</div><div class="cap">questions</div></div>
+      <div><div class="num">8</div><div class="cap">elements</div></div>
+      <div><div class="num">64</div><div class="cap">sub-facets</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="startQuiz()">はじめる</button>
+    </div>
+    <p class="small" style="margin-top:32px">所要時間 およそ12〜15分</p>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="quiz">
+    <div class="progress-bar">
+      <div class="progress-inner">
+        <span class="progress-cat" id="pCat">accepting</span>
+        <span class="progress-num"><span class="now" id="pNow">1</span><span class="total" id="pTotal"> / 100</span></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="pFill"></div></div>
+    </div>
+
+    <div class="question-block" id="qBlock">
+      <!-- 動的生成 -->
+    </div>
+
+    <div class="nav">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← もどる</button>
+      <button class="nav-btn primary" id="nextBtn" onclick="nextQ()" disabled>つぎへ</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="result" class="result">
+    <div class="result-head">
+      <span class="label">— your portrait —</span>
+      <h1>あなたのやさしさ</h1>
+      <p class="lead">百の問いから浮かびあがった、八つの要素の濃淡です。強い線も、薄い線も、いまのあなたの輪郭をかたちづくっています。</p>
+    </div>
+
+    <div class="mandala-section">
+      <div class="section-cap"><span class="label">— mandala —</span><h2>曼荼羅</h2></div>
+      <div class="mandala-wrap" id="mandalaWrap"></div>
+      <div class="dl-row">
+        <button class="btn-dl" onclick="downloadMandala('jpg')">JPGで保存</button>
+        <button class="btn-dl ghost" onclick="downloadMandala('svg')">SVGで保存</button>
+      </div>
+      <p class="mandala-note">濃いほど、いまのあなたのなかで強く息づいている要素です。</p>
+    </div>
+
+    <div class="radar-section">
+      <div class="section-cap"><span class="label">— radar —</span><h2>八つの輪郭</h2></div>
+      <div class="radar-wrap" id="radarWrap"></div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-cell">
+        <span class="label">— most prominent —</span>
+        <h3 id="topName">—</h3>
+        <div class="en" id="topEn">—</div>
+        <p class="desc" id="topDesc">—</p>
+      </div>
+      <div class="summary-cell">
+        <span class="label">— quietest —</span>
+        <h3 id="botName">—</h3>
+        <div class="en" id="botEn">—</div>
+        <p class="desc" id="botDesc">—</p>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <span class="label">— breakdown by element —</span>
+      <h2 style="margin-bottom:48px">八つの要素</h2>
+      <div id="bars"></div>
+    </div>
+
+    <div class="detail">
+      <span class="label">— sub-facets in detail —</span>
+      <h2 style="margin-bottom:48px">六十四の細部</h2>
+      <div id="details"></div>
+    </div>
+
+    <div class="foot">
+      <span class="label">— reflection —</span>
+      <p>やさしさは固定された資質ではありません。日々の選択のなかで、薄くなったり、濃くなったりする、生きものに似たものです。この結果が、あなた自身を見つめるためのささやかな鏡となりますように。</p>
+      <div class="btn-row">
+        <button class="btn ghost" onclick="restart()">もういちど受ける</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+// ============== データ ==============
+const CATEGORIES = [
+  {id:'accept', name:'受け止める', en:'accepting',
+   desc:'相手のすがたを評価せずに、ありのままに迎えいれる力。判断を先延ばしにして、まず居場所をつくる態度です。',
+   subs:['受容','共感','包容','傾聴','見守る','無批判','寄り添う','尊重']},
+  {id:'sincere', name:'誠実さ', en:'sincerity',
+   desc:'自分の言葉と行いを一致させ、相手に対して透明であろうとする力。地味だけれど、信頼の土台になるものです。',
+   subs:['誠実さ','正直さ','一貫性','約束を守る','嘘をつかない','思いやり','配慮','先回り']},
+  {id:'express', name:'表現する', en:'expressing',
+   desc:'やさしさを内に秘めるだけでなく、笑顔や言葉や仕草で相手に届ける力。形にすることで、はじめて伝わるものがあります。',
+   subs:['笑顔','声かけ','挨拶','柔らかい言葉','名前を呼ぶ','うなずき','目を合わせる','触れる']},
+  {id:'forgive', name:'ゆるす', en:'forgiving',
+   desc:'相手の不完全さや遅さに苛立たず、待ち、許す力。自分への寛容さがなければ、他者へのゆるしも生まれません。',
+   subs:['忍耐','待つ','急かさない','怒らない','繰り返す','寛容','許す','見逃す']},
+  {id:'help', name:'助ける', en:'helping',
+   desc:'困っているひとに手を差しだし、重荷を分かちあう力。目に見える行動として、やさしさが形をとる場面です。',
+   subs:['助ける','支える','代わる','荷を持つ','気にかける','先を読む','無償で','黙って']},
+  {id:'give', name:'与える', en:'giving',
+   desc:'自分のもつ時間や心を、見返りを求めずに差しだす力。惜しまずに与えることのできる人の懐の深さです。',
+   subs:['自己犠牲','与える','奉仕','ケア','見返り不要','慈悲','惜しまない','施し']},
+  {id:'gentle', name:'穏やかさ', en:'gentleness',
+   desc:'声の大きさや態度のたたずまいに表れる、静かな品性。激することなく、自分を整えていられる力です。',
+   subs:['穏やかさ','静けさ','物腰','低姿勢','謙虚さ','怒鳴らない','押しつけない','柔軟性']},
+  {id:'vulner', name:'脆さを知る', en:'vulnerability',
+   desc:'自分自身の弱さや痛みを知っていることが、他者へのほんとうのやさしさの源になります。傷ついた経験こそが滋養です。',
+   subs:['弱さへの理解','痛みを知る','挫折経験','傷つきやすさ','孤独の経験','喪失感','感謝を知る','他者の痛み']}
+];
+
+// 100問 (各カテゴリ12〜13問: サブ要素8問 + カテゴリ補正4〜5問)
+// カテゴリ順に並べる構成: accept(13) sincere(13) express(12) forgive(13) help(12) give(12) gentle(12) vulner(13) = 100
+const QUESTIONS = [
+  // ===== 受け止める (13問: サブ8 + 補正5) =====
+  {c:'accept', s:'受容', t:'相手が自分とまったく違う意見を言ったとき、まずそのまま受けとめようとする'},
+  {c:'accept', s:'共感', t:'相手の話を聞きながら、その人の感情を自分のことのように感じることがある'},
+  {c:'accept', s:'包容', t:'相手の欠点や弱さも含めて、その人をまるごと受け入れたいと思う'},
+  {c:'accept', s:'傾聴', t:'相手が話しているとき、相づちや反論を急がず、最後まで聞ききろうとする'},
+  {c:'accept', s:'見守る', t:'相手が悩んでいても、すぐに助言せず、そばで見守ることを選べる'},
+  {c:'accept', s:'無批判', t:'相手の選択を、自分の価値観で良し悪しを判断せずに聞ける'},
+  {c:'accept', s:'寄り添う', t:'落ちこんでいる人の隣に、何も言わずただ座っていられる'},
+  {c:'accept', s:'尊重', t:'自分とは違う生き方を選ぶ人に対して、その人なりの理由があると思える'},
+  {c:'accept', s:'_', t:'人と話していて、相手の言いたいことを途中でさえぎってしまうことは少ない'},
+  {c:'accept', s:'_', t:'「わからない」と言われたときに、急かさずその「わからなさ」と一緒にいられる'},
+  {c:'accept', s:'_', t:'自分と意見が異なる相手を、「敵」や「間違い」と感じることは少ない'},
+  {c:'accept', s:'_', t:'相手の話を聞くとき、答えを準備しながらではなく、純粋に聞くことができる'},
+  {c:'accept', s:'_', t:'人の沈黙を気まずく感じず、その沈黙にも意味があると思える'},
+
+  // ===== 誠実さ (13問: サブ8 + 補正5) =====
+  {c:'sincere', s:'誠実さ', t:'相手が望む答えではなく、自分が本心から思うことを伝えようとする'},
+  {c:'sincere', s:'正直さ', t:'都合の悪い事実でも、ごまかさずに正直に話すほうだ'},
+  {c:'sincere', s:'一貫性', t:'人によって言うことを変えず、誰の前でもおなじ態度でいようとする'},
+  {c:'sincere', s:'約束を守る', t:'一度かわした約束は、たとえ小さなものでも守ろうとする'},
+  {c:'sincere', s:'嘘をつかない', t:'場をやり過ごすための軽い嘘も、できるだけ避けたいと思う'},
+  {c:'sincere', s:'思いやり', t:'相手の立場や状況を想像しながら、ものごとを判断するほうだ'},
+  {c:'sincere', s:'配慮', t:'相手が傷つかないよう、言葉の選びかたに気をくばっている'},
+  {c:'sincere', s:'先回り', t:'相手が困りそうなことに、頼まれる前に気づいて準備しておくことがある'},
+  {c:'sincere', s:'_', t:'裏表のある振るまいをすることに、強い違和感をおぼえる'},
+  {c:'sincere', s:'_', t:'自分が間違えたときには、認めて謝ることができる'},
+  {c:'sincere', s:'_', t:'本音と建前のずれが大きい状況では、しんどさを感じやすい'},
+  {c:'sincere', s:'_', t:'「信頼できる人」と言われると、嬉しく感じる'},
+  {c:'sincere', s:'_', t:'できない約束は、はじめから「できない」と伝えるようにしている'},
+
+  // ===== 表現する (12問: サブ8 + 補正4) =====
+  {c:'express', s:'笑顔', t:'人と会ったとき、自然と笑顔がでるほうだ'},
+  {c:'express', s:'声かけ', t:'すれ違う人や、迷っている人に、自分から声をかけられる'},
+  {c:'express', s:'挨拶', t:'挨拶を、形式ではなく相手への祝福として大切にしている'},
+  {c:'express', s:'柔らかい言葉', t:'同じ内容でも、できるだけ角の立たない言葉を選ぼうとする'},
+  {c:'express', s:'名前を呼ぶ', t:'会話のなかで、相手の名前を呼ぶことを意識している'},
+  {c:'express', s:'うなずき', t:'相手の話を聞きながら、自然とうなずいて反応しているほうだ'},
+  {c:'express', s:'目を合わせる', t:'人と話すとき、相手の目をきちんと見ることができる'},
+  {c:'express', s:'触れる', t:'親しい人の肩にそっと手をおくような、身体的な表現ができる'},
+  {c:'express', s:'_', t:'感謝の気持ちを、心のなかにとどめず、ちゃんと言葉にする'},
+  {c:'express', s:'_', t:'相手を褒めるとき、照れずに具体的に伝えられる'},
+  {c:'express', s:'_', t:'「ありがとう」「ごめんなさい」を、ためらわず口にできる'},
+  {c:'express', s:'_', t:'やさしさを内に秘めるよりも、形にして届けることが大切だと思う'},
+
+  // ===== ゆるす (13問: サブ8 + 補正5) =====
+  {c:'forgive', s:'忍耐', t:'思いどおりにならない状況でも、しばらく耐えていられる'},
+  {c:'forgive', s:'待つ', t:'相手のペースを尊重し、急がず待つことができる'},
+  {c:'forgive', s:'急かさない', t:'返事が遅い相手にも、催促せずに任せていられる'},
+  {c:'forgive', s:'怒らない', t:'相手のミスや遅れに対して、感情的に怒ることは少ない'},
+  {c:'forgive', s:'繰り返す', t:'同じ説明を何度求められても、嫌な顔をせず応じられる'},
+  {c:'forgive', s:'寛容', t:'人の小さな失礼や不器用さを、大目に見ることができる'},
+  {c:'forgive', s:'許す', t:'自分を傷つけた相手のことを、時間をかけて手放していける'},
+  {c:'forgive', s:'見逃す', t:'いちいち指摘せず、流していい場面と、そうでない場面を見わけられる'},
+  {c:'forgive', s:'_', t:'過去にうけた仕打ちを、いつまでも引きずってしまうことは少ない'},
+  {c:'forgive', s:'_', t:'自分自身に対しても、できなかった日があっても責めすぎない'},
+  {c:'forgive', s:'_', t:'相手が変わらないことに、過度に苛立たないでいられる'},
+  {c:'forgive', s:'_', t:'怒りを感じても、それを行動にうつす前に、ひと呼吸おける'},
+  {c:'forgive', s:'_', t:'「ゆるす」ことと「忘れる」ことは違うと、納得できる'},
+
+  // ===== 助ける (12問: サブ8 + 補正4) =====
+  {c:'help', s:'助ける', t:'困っている人を見たら、声をかけずにはいられないほうだ'},
+  {c:'help', s:'支える', t:'落ちこんでいる人を、長い時間をかけてでも支えたいと思う'},
+  {c:'help', s:'代わる', t:'相手が大変そうなとき、自分が代わりに引きうけることがある'},
+  {c:'help', s:'荷を持つ', t:'重いものを持っている人や、両手のふさがっている人に、自然と手を差しだせる'},
+  {c:'help', s:'気にかける', t:'最近会っていない人のことを、ふと思いだして気にかけることがある'},
+  {c:'help', s:'先を読む', t:'相手が次に困りそうなことを、頼まれる前に察知できる'},
+  {c:'help', s:'無償で', t:'見返りや感謝がなくても、誰かを助けることそのものに意味を感じる'},
+  {c:'help', s:'黙って', t:'助けたことを、わざわざ口にださずにいられる'},
+  {c:'help', s:'_', t:'「大丈夫?」と尋ねる回数が、人より多いほうだと思う'},
+  {c:'help', s:'_', t:'助けることで、相手の自立をうばわないように気をつけている'},
+  {c:'help', s:'_', t:'自分が忙しくても、本当に困っている人のためには手をとめられる'},
+  {c:'help', s:'_', t:'人を助けることが、自分の喜びとつながっている感覚がある'},
+
+  // ===== 与える (12問: サブ8 + 補正4) =====
+  {c:'give', s:'自己犠牲', t:'自分の時間を削ってでも、誰かのために動くことがある'},
+  {c:'give', s:'与える', t:'もらうよりも、与えることのほうが心地よいと感じる'},
+  {c:'give', s:'奉仕', t:'ボランティアや、誰かのための活動に、自然と関わってしまう'},
+  {c:'give', s:'ケア', t:'相手の心身を気づかう行為に、面倒くささを感じない'},
+  {c:'give', s:'見返り不要', t:'与えたあとに「お礼がない」と感じることは少ない'},
+  {c:'give', s:'慈悲', t:'困窮している人を見て、胸が痛む感覚がある'},
+  {c:'give', s:'惜しまない', t:'自分のもつ知識や技術を、隠さず誰かに分け与える'},
+  {c:'give', s:'施し', t:'寄付や応援といった行為に、ためらわず参加できる'},
+  {c:'give', s:'_', t:'誰かのために使った時間を、無駄だと感じることはほとんどない'},
+  {c:'give', s:'_', t:'プレゼントを選ぶとき、相手の喜ぶ顔を想像することが楽しい'},
+  {c:'give', s:'_', t:'自分のためだけにお金や時間を使うことに、ときに罪悪感をおぼえる'},
+  {c:'give', s:'_', t:'「もらってばかり」より「あげてばかり」のほうが落ち着く'},
+
+  // ===== 穏やかさ (12問: サブ8 + 補正4) =====
+  {c:'gentle', s:'穏やかさ', t:'感情の波が少なく、いつも一定でいるほうだと言われる'},
+  {c:'gentle', s:'静けさ', t:'にぎやかな場よりも、静かな場で落ちつきを感じる'},
+  {c:'gentle', s:'物腰', t:'自分の動作や所作が、ゆったりしているほうだと思う'},
+  {c:'gentle', s:'低姿勢', t:'自分を大きく見せようとせず、低姿勢でいるのが自然だ'},
+  {c:'gentle', s:'謙虚さ', t:'褒められても、舞いあがらず、控えめでいたいと思う'},
+  {c:'gentle', s:'怒鳴らない', t:'声を荒らげることは、ほとんどない'},
+  {c:'gentle', s:'押しつけない', t:'自分の意見を、相手におしつけないように気をつけている'},
+  {c:'gentle', s:'柔軟性', t:'相手や状況に応じて、自分のやりかたを変えられる'},
+  {c:'gentle', s:'_', t:'相手をやり込めることに、興味も快感もない'},
+  {c:'gentle', s:'_', t:'勝ち負けよりも、その場の和を大切にしたいと思う'},
+  {c:'gentle', s:'_', t:'急なトラブルにあっても、まず深呼吸をする余裕がある'},
+  {c:'gentle', s:'_', t:'人の上に立つよりも、横に並ぶ感覚のほうがしっくりくる'},
+
+  // ===== 脆さを知る (13問: サブ8 + 補正5) =====
+  {c:'vulner', s:'弱さへの理解', t:'人にはそれぞれ弱い部分があると、心の底から理解している'},
+  {c:'vulner', s:'痛みを知る', t:'自分自身がしんどかった経験を、忘れずに持っている'},
+  {c:'vulner', s:'挫折経験', t:'これまでに、深く挫折した経験がある'},
+  {c:'vulner', s:'傷つきやすさ', t:'自分が傷つきやすい人間だと、認めることができる'},
+  {c:'vulner', s:'孤独の経験', t:'ひとりきりだと感じた時期を、人生のなかに持っている'},
+  {c:'vulner', s:'喪失感', t:'大切なものを失った経験が、いまの自分を形づくっていると感じる'},
+  {c:'vulner', s:'感謝を知る', t:'当たり前にあるものへの感謝を、忘れないようにしている'},
+  {c:'vulner', s:'他者の痛み', t:'人の痛みを、頭ではなく、身体で感じることがある'},
+  {c:'vulner', s:'_', t:'「強くあらねば」と無理をしすぎないようにしている'},
+  {c:'vulner', s:'_', t:'弱さを見せることのできる相手が、人生に何人かいる'},
+  {c:'vulner', s:'_', t:'自分の不完全さを、隠さずに受けいれている'},
+  {c:'vulner', s:'_', t:'泣くことを、恥ずかしいことだとは思わない'},
+  {c:'vulner', s:'_', t:'弱さを知っている人のほうが、ほんとうの強さを持っていると思う'}
+];
+
+const SCALE = [
+  {v:1, label:'まったく当てはまらない'},
+  {v:2, label:'あまり当てはまらない'},
+  {v:3, label:'どちらともいえない'},
+  {v:4, label:'やや当てはまる'},
+  {v:5, label:'とても当てはまる'}
+];
+
+// ============== 状態 ==============
+let currentIdx = 0;
+const answers = new Array(QUESTIONS.length).fill(null);
+
+// ============== 起動 ==============
+function startQuiz(){
+  document.getElementById('intro').style.display='none';
+  document.getElementById('quiz').classList.add('active');
+  document.getElementById('pTotal').textContent = ' / ' + QUESTIONS.length;
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[currentIdx];
+  const cat = CATEGORIES.find(c=>c.id===q.c);
+  const sub = q.s === '_' ? '' : q.s;
+  const block = document.getElementById('qBlock');
+
+  block.innerHTML = `
+    <div class="fade-in">
+      <div class="q-cat">— ${cat.en} —</div>
+      <div class="q-sub">${cat.name}${sub?' · '+sub:''}</div>
+      <div class="q-text">${q.t}</div>
+      <div class="scale">
+        ${SCALE.map(s=>`
+          <div class="scale-row ${answers[currentIdx]===s.v?'selected':''}" data-v="${s.v}" onclick="selectAnswer(${s.v})">
+            <div class="scale-num">${s.v}</div>
+            <div class="scale-text">${s.label}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // progress
+  document.getElementById('pCat').textContent = cat.en;
+  document.getElementById('pNow').textContent = currentIdx + 1;
+  const pct = ((currentIdx+1)/QUESTIONS.length)*100;
+  document.getElementById('pFill').style.width = pct + '%';
+
+  // nav
+  document.getElementById('prevBtn').disabled = currentIdx === 0;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = answers[currentIdx] === null;
+  nextBtn.textContent = currentIdx === QUESTIONS.length - 1 ? '結果を見る' : 'つぎへ';
+}
+
+function selectAnswer(v){
+  answers[currentIdx] = v;
+  renderQuestion();
+  // 0.3秒後に自動で次へ
+  setTimeout(()=>{
+    if(currentIdx < QUESTIONS.length - 1){
+      nextQ();
+    }
+  }, 350);
+}
+
+function nextQ(){
+  if(answers[currentIdx] === null) return;
+  if(currentIdx === QUESTIONS.length - 1){
+    showResult();
+    return;
+  }
+  currentIdx++;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function prevQ(){
+  if(currentIdx === 0) return;
+  currentIdx--;
+  renderQuestion();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ============== 結果計算 ==============
+function calcScores(){
+  // カテゴリ別合計と件数
+  const catData = {};
+  CATEGORIES.forEach(c=>{ catData[c.id] = {sum:0, n:0, subs:{}}; });
+
+  QUESTIONS.forEach((q, i)=>{
+    const v = answers[i] || 3;
+    catData[q.c].sum += v;
+    catData[q.c].n += 1;
+    if(q.s !== '_'){
+      if(!catData[q.c].subs[q.s]) catData[q.c].subs[q.s] = {sum:0, n:0};
+      catData[q.c].subs[q.s].sum += v;
+      catData[q.c].subs[q.s].n += 1;
+    }
+  });
+
+  // カテゴリスコア(0-100に正規化: 1-5 → 0-100)
+  const result = CATEGORIES.map(c=>{
+    const avg = catData[c.id].sum / catData[c.id].n; // 1-5
+    const score = Math.round((avg - 1) / 4 * 100);
+    const subScores = {};
+    c.subs.forEach(sub=>{
+      const s = catData[c.id].subs[sub];
+      if(s){
+        const sAvg = s.sum / s.n;
+        subScores[sub] = Math.round((sAvg - 1) / 4 * 100);
+      } else {
+        subScores[sub] = 0;
+      }
+    });
+    return { ...c, avg, score, subScores };
+  });
+
+  return result;
+}
+
+function showResult(){
+  document.getElementById('quiz').classList.remove('active');
+  document.getElementById('result').classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+
+  const scores = calcScores();
+  drawMandala(scores);
+  drawRadar(scores);
+  drawSummary(scores);
+  drawBars(scores);
+  drawDetails(scores);
+}
+
+// ============== 曼荼羅 ==============
+// 元SVGと同じ9×9グリッド構造 (cell 68px, gap 4px, offset x=18, y=20)
+// 中央(4,4): やさしい / 8中要素(角+辺) / 各々の周囲8マスがサブ要素
+
+const MANDALA_LAYOUT = [
+  // {catId, midPos:[col,row], subs順 = サブ要素配列のインデックス順}
+  // 角と辺の中要素位置: TL(1,1) T(4,1) TR(7,1) L(1,4) R(7,4) BL(1,7) B(4,7) BR(7,7)
+  // 周囲8マスの並び (上3, 中2, 下3): (-1,-1)(0,-1)(1,-1)(-1,0)(1,0)(-1,1)(0,1)(1,1)
+  {catId:'accept',  mid:[1,1]},
+  {catId:'sincere', mid:[4,1]},
+  {catId:'express', mid:[7,1]},
+  {catId:'forgive', mid:[1,4]},
+  {catId:'help',    mid:[7,4]},
+  {catId:'give',    mid:[1,7]},
+  {catId:'gentle',  mid:[4,7]},
+  {catId:'vulner',  mid:[7,7]}
+];
+const SUB_OFFSETS = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+
+function cellXY(col, row){
+  return { x: 18 + col*72, y: 20 + row*72 };
+}
+
+// スコア(0-100) → 黒の不透明度
+function scoreToOpacity(score){
+  return 0.08 + (score/100) * 0.92;
+}
+// スコアによって文字色を反転 (高スコア=白, 低スコア=濃グレー)
+function scoreToTextColor(score){
+  return score >= 55 ? '#fafaf7' : '#3a3a3a';
+}
+
+function drawMandala(scores){
+  const W = 680, H = 700;
+  const scoreMap = {};
+  scores.forEach(s => { scoreMap[s.id] = s; });
+
+  // SVG構築 (XMLSerializerでDLしやすいよう、self-contained)
+  let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">`;
+  svg += `<defs><style>
+    .m-bg{fill:#fafaf7}
+    .m-cell{stroke:#1a1a1a;stroke-width:0.5}
+    .m-mid{stroke:#1a1a1a;stroke-width:1}
+    .m-center{fill:#1a1a1a;stroke:#1a1a1a;stroke-width:1}
+    .m-tx{font-family:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho','MS Mincho',serif;text-anchor:middle;dominant-baseline:central}
+    .m-tx-sub{font-size:11px}
+    .m-tx-mid{font-size:14px;font-weight:500;letter-spacing:0.04em}
+    .m-tx-mid-en{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:10px}
+    .m-tx-center{fill:#fafaf7;font-size:17px;font-weight:500;letter-spacing:0.1em}
+    .m-title{font-family:'Shippori Mincho',serif;font-size:13px;fill:#6a6a6a;letter-spacing:0.25em;text-anchor:middle}
+    .m-title-en{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11px;fill:#9a9a9a;letter-spacing:0.2em;text-anchor:middle}
+  </style></defs>`;
+
+  // 背景
+  svg += `<rect class="m-bg" x="0" y="0" width="${W}" height="${H}"/>`;
+
+  // 各中要素ブロックを描画
+  MANDALA_LAYOUT.forEach(({catId, mid}) => {
+    const s = scoreMap[catId];
+    const [mcol, mrow] = mid;
+    // サブ要素 (8マス)
+    SUB_OFFSETS.forEach(([dx, dy], i) => {
+      const col = mcol + dx, row = mrow + dy;
+      const {x, y} = cellXY(col, row);
+      const subName = s.subs[i];
+      const subScore = s.subScores[subName] || 0;
+      const op = scoreToOpacity(subScore);
+      const textColor = scoreToTextColor(subScore);
+      svg += `<g>`;
+      svg += `<rect class="m-cell" x="${x}" y="${y}" width="68" height="68" rx="4" fill="#1a1a1a" fill-opacity="${op.toFixed(3)}"/>`;
+      svg += `<text class="m-tx m-tx-sub" x="${x+34}" y="${y+34}" fill="${textColor}">${subName}</text>`;
+      svg += `</g>`;
+    });
+
+    // 中要素セル
+    const {x: mx, y: my} = cellXY(mcol, mrow);
+    const midOp = scoreToOpacity(s.score);
+    const midTextColor = scoreToTextColor(s.score);
+    svg += `<g>`;
+    svg += `<rect class="m-mid" x="${mx}" y="${my}" width="68" height="68" rx="6" fill="#1a1a1a" fill-opacity="${midOp.toFixed(3)}"/>`;
+    svg += `<text class="m-tx m-tx-mid" x="${mx+34}" y="${my+26}" fill="${midTextColor}">${s.name}</text>`;
+    svg += `<text class="m-tx m-tx-mid-en" x="${mx+34}" y="${my+44}" fill="${midTextColor}" opacity="0.75">${s.en}</text>`;
+    svg += `<text class="m-tx m-tx-mid-en" x="${mx+34}" y="${my+58}" fill="${midTextColor}" opacity="0.85">${s.score}</text>`;
+    svg += `</g>`;
+  });
+
+  // 中央リング(3,3)〜(5,5)の周囲8セル — 装飾的に薄く描画 (元SVGの中央リング)
+  const centerRingCells = [[3,3],[4,3],[5,3],[3,4],[5,4],[3,5],[4,5],[5,5]];
+  centerRingCells.forEach(([col,row]) => {
+    const {x, y} = cellXY(col, row);
+    svg += `<rect x="${x}" y="${y}" width="68" height="68" rx="4" fill="none" stroke="#e5e3dc" stroke-width="0.5"/>`;
+  });
+
+  // 中央セル (4,4) = やさしい
+  const {x: cx, y: cy} = cellXY(4, 4);
+  svg += `<g>`;
+  svg += `<rect class="m-center" x="${cx}" y="${cy}" width="68" height="68" rx="8"/>`;
+  svg += `<text class="m-tx m-tx-center" x="${cx+34}" y="${cy+28}">やさ</text>`;
+  svg += `<text class="m-tx m-tx-center" x="${cx+34}" y="${cy+48}">しい</text>`;
+  svg += `</g>`;
+
+  // タイトル (上)
+  svg += `<text class="m-title-en" x="${W/2}" y="${H-32}">— mandala of kindness —</text>`;
+
+  svg += `</svg>`;
+  document.getElementById('mandalaWrap').innerHTML = svg;
+}
+
+// ============== ダウンロード ==============
+function downloadMandala(format){
+  const svgEl = document.querySelector('#mandalaWrap svg');
+  if(!svgEl) return;
+  // クローンしてシリアライズ
+  const clone = svgEl.cloneNode(true);
+  // 念のためxmlns付与
+  if(!clone.getAttribute('xmlns')) clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  const xml = new XMLSerializer().serializeToString(clone);
+  const blob = new Blob([xml], {type: 'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+
+  if(format === 'svg'){
+    triggerDownload(url, 'yasashisa_mandala.svg');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return;
+  }
+
+  // JPG変換
+  const img = new Image();
+  img.onload = function(){
+    const scale = 3; // 2040×2100 で出力（高解像度）
+    const canvas = document.createElement('canvas');
+    canvas.width = svgEl.viewBox.baseVal.width * scale;
+    canvas.height = svgEl.viewBox.baseVal.height * scale;
+    const ctx = canvas.getContext('2d');
+    // 紙色背景（JPGは透過不可なので明示）
+    ctx.fillStyle = '#fafaf7';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob(function(jpgBlob){
+      const jpgUrl = URL.createObjectURL(jpgBlob);
+      triggerDownload(jpgUrl, 'yasashisa_mandala.jpg');
+      setTimeout(() => {
+        URL.revokeObjectURL(jpgUrl);
+        URL.revokeObjectURL(url);
+      }, 1000);
+    }, 'image/jpeg', 0.92);
+  };
+  img.onerror = function(e){
+    alert('画像の変換に失敗しました。SVG形式で保存をお試しください。');
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+function triggerDownload(url, filename){
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ============== レーダー ==============
+function drawRadar(scores){
+  const size = 560, cx = size/2, cy = size/2;
+  const maxR = 200;
+  const n = scores.length;
+
+  let svg = `<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // 同心円(20,40,60,80,100)
+  [20,40,60,80,100].forEach(p=>{
+    const r = maxR * p / 100;
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#d8d6cf" stroke-width="${p===100?1:0.5}" />`;
+  });
+
+  // 軸線
+  for(let i=0; i<n; i++){
+    const a = -Math.PI/2 + 2*Math.PI*i/n;
+    const x = cx + Math.cos(a)*maxR, y = cy + Math.sin(a)*maxR;
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#e5e3dc" stroke-width="0.5" />`;
+  }
+
+  // データ多角形
+  const pts = [];
+  for(let i=0; i<n; i++){
+    const a = -Math.PI/2 + 2*Math.PI*i/n;
+    const r = maxR * scores[i].score / 100;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    pts.push(`${x},${y}`);
+  }
+  svg += `<polygon points="${pts.join(' ')}" fill="#1a1a1a" fill-opacity="0.08" stroke="#1a1a1a" stroke-width="1.5" stroke-linejoin="round" />`;
+
+  // 頂点ドット
+  for(let i=0; i<n; i++){
+    const a = -Math.PI/2 + 2*Math.PI*i/n;
+    const r = maxR * scores[i].score / 100;
+    const x = cx + Math.cos(a)*r, y = cy + Math.sin(a)*r;
+    svg += `<circle cx="${x}" cy="${y}" r="3.5" fill="#1a1a1a" />`;
+  }
+
+  // ラベル
+  for(let i=0; i<n; i++){
+    const a = -Math.PI/2 + 2*Math.PI*i/n;
+    const lr = maxR + 36;
+    const x = cx + Math.cos(a)*lr, y = cy + Math.sin(a)*lr;
+    const lr2 = maxR + 56;
+    const x2 = cx + Math.cos(a)*lr2, y2 = cy + Math.sin(a)*lr2;
+    svg += `<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-family="Shippori Mincho, serif" font-size="14" font-weight="500" fill="#1a1a1a" letter-spacing="2">${scores[i].name}</text>`;
+    svg += `<text x="${x2}" y="${y2+2}" text-anchor="middle" dominant-baseline="central" font-family="Cormorant Garamond, serif" font-style="italic" font-size="11" fill="#9a9a9a" letter-spacing="1">${scores[i].en}</text>`;
+  }
+
+  // 中心
+  svg += `<circle cx="${cx}" cy="${cy}" r="3" fill="#1a1a1a" />`;
+
+  svg += `</svg>`;
+  document.getElementById('radarWrap').innerHTML = svg;
+}
+
+// ============== サマリ ==============
+function drawSummary(scores){
+  const sorted = [...scores].sort((a,b)=>b.score-a.score);
+  const top = sorted[0], bot = sorted[sorted.length-1];
+  document.getElementById('topName').textContent = top.name;
+  document.getElementById('topEn').textContent = top.en;
+  document.getElementById('topDesc').textContent = top.desc;
+  document.getElementById('botName').textContent = bot.name;
+  document.getElementById('botEn').textContent = bot.en;
+  document.getElementById('botDesc').textContent = bot.desc;
+}
+
+// ============== バー ==============
+function drawBars(scores){
+  const sorted = [...scores].sort((a,b)=>b.score-a.score);
+  const el = document.getElementById('bars');
+  el.innerHTML = sorted.map(s=>`
+    <div class="bar-row">
+      <div class="bar-label">${s.name}<span class="en">${s.en}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${s.score}%"></div></div>
+      <div class="bar-val">${s.score}</div>
+    </div>
+  `).join('');
+}
+
+// ============== 詳細 ==============
+function drawDetails(scores){
+  const el = document.getElementById('details');
+  el.innerHTML = scores.map(c=>`
+    <div class="detail-cat">
+      <div class="detail-head">
+        <h3>${c.name}</h3>
+        <span class="en">${c.en} · ${c.score}</span>
+      </div>
+      <div class="sub-grid">
+        ${c.subs.map(sub=>{
+          const sc = c.subScores[sub] || 0;
+          const dots = Math.round(sc/20);
+          return `
+            <div class="sub-cell">
+              <div class="sub-name">${sub}</div>
+              <div class="sub-score">${sc}</div>
+              <div class="sub-dots">
+                ${[1,2,3,4,5].map(i=>`<span class="sub-dot ${i<=dots?'on':''}"></span>`).join('')}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============== リスタート ==============
+function restart(){
+  currentIdx = 0;
+  for(let i=0;i<answers.length;i++) answers[i] = null;
+  document.getElementById('result').classList.remove('active');
+  document.getElementById('intro').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ============== 起動時チェック ==============
+console.log('Questions loaded:', QUESTIONS.length);
+</script>
+
+</body>
+</html>
